@@ -1,5 +1,6 @@
 package com.ra.security;
 
+import com.ra.security.jwt.CustomAccessDeniedHandler;
 import com.ra.security.jwt.JwtAuthTokenFilter;
 import com.ra.security.jwt.JwtEntryPoint;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,16 +26,19 @@ public class SecurityConfig {
     private JwtEntryPoint jwtEntryPoint;
     @Autowired
     private JwtAuthTokenFilter jwtAuthTokenFilter;
+    @Autowired
+    private CustomAccessDeniedHandler customAccessDeniedHandler;
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception{
         return httpSecurity.csrf(AbstractHttpConfigurer::disable).
                 authenticationProvider(authenticationProvider()).
                 authorizeHttpRequests(auth->{
-                    auth.requestMatchers("/api/v1/user").permitAll();
                     auth.requestMatchers("/api/v1/admin").hasAuthority("ADMIN");
-                    auth.anyRequest().authenticated();
+                    auth.requestMatchers("/api/v1/cart").hasAuthority("USER");
+                    auth.requestMatchers("/api/v1/user","/api/v1/auth/**").permitAll();
                 }).sessionManagement(auth->auth.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .exceptionHandling(auth->auth.authenticationEntryPoint(jwtEntryPoint)).
+                .exceptionHandling(auth->auth.authenticationEntryPoint(jwtEntryPoint)
+                        .accessDeniedHandler(customAccessDeniedHandler)).
                 addFilterBefore(jwtAuthTokenFilter, UsernamePasswordAuthenticationFilter.class).build();
     }
 
