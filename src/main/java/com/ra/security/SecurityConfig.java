@@ -33,7 +33,8 @@ public class SecurityConfig {
         return httpSecurity.csrf(AbstractHttpConfigurer::disable).
                 authenticationProvider(authenticationProvider()).
                 authorizeHttpRequests(auth->{
-                    auth.requestMatchers("/api/v1/admin").hasAuthority("ADMIN");
+                    auth.requestMatchers("/api/v1/admin/auth/create").hasAuthority("ADMIN");
+                    auth.requestMatchers("/api/v1/admin/auth").hasAnyAuthority("ADMIN","SUB_ADMIN");
                     auth.requestMatchers("/api/v1/cart").hasAuthority("USER");
                     auth.requestMatchers("/api/v1/user","/api/v1/auth/**").permitAll();
                 }).sessionManagement(auth->auth.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
